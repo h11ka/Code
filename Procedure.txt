@@ -1,0 +1,39 @@
+1 Создайте хранимую процедуру, которая получает на вход имя таблицы, а возвращает число строк в ней.
+
+CREATE OR REPLACE PROCEDURE public.count_table( 
+ 	IN wao character varying, 
+ 	INOUT number_of_lines integer) 
+LANGUAGE 'plpgsql' 
+AS $BODY$ 
+
+Begin 
+
+ 	EXECUTE 'Select count(*) From '||quote_ident(wao) INTO number_of_lines; 
+
+end; 
+
+$BODY$; 
+ALTER PROCEDURE public.count_table(character varying, integer) 
+ 	OWNER TO postgres;
+
+
+2 Создайте хранимую процедуру, которая возвращает все путешествия после заданной даты.
+
+CREATE FUNCTION public.trip_after(
+    after timestamp without time zone)
+    RETURNS TABLE (id integer, plane character varying, town_from character varying, town_out character varying, time_out timestamp with time zone, time_in timestamp with time zone)
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE 
+    ROWS 1000
+
+AS $BODY$
+BEGIN 
+RETURN QUERY(
+SELECT * FROM TRIP
+ trip.time_out > after 
+);
+end;
+$BODY$;
+ALTER FUNCTION public.trip_after(timestamp without time zone)
+OWNER TO postgres;
